@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         LuxMed Auto Booker
 // @namespace    http://ingwar.eu.org/
-// @version      1.0
+// @version      1.1
 // @description  LuxMed Auto Booker
-// @author       Karol Lassak <Ingwar Swenson>
+// @author       Karol Lassak <Ingwar Swenson>, Piotr Dutko <p.dutko@webdudi.pl>
 // @match        https://portalpacjenta.luxmed.pl/PatientPortal/Reservations/Reservation/Find
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -31,17 +31,19 @@ function checkVisits() {
         var found = foundDivs[0];
 
         found.click();
-        setTimeout(acceptVisit, 10000);
+        setTimeout(acceptVisit, 5000);
     } else {
         console.log("NOT Found any visits, researching..");
-        setTimeout(FilterFormSubmit, 10000);
+        setTimeout(function(){
+            $('#reservationSearchSubmitButton').click();
+        }, GM_getValue("time_reload", 5000));
     }
 }
 
 function filterNeeded(div) {
-    var a = div.firstElementChild;
-    var hour = parseInt(a.text.substring(0, 2));
-    //    console.log("Hour: " + hour);
+    var a = jQuery(div).find('a');
+    var hour = parseInt(a[0].outerText.substring(0, 2));
+    console.log("Hour: " + hour);
 
     if (hour > GM_getValue("time_to")) {
         console.log("Hour: " + hour + " > " + GM_getValue("time_to") + " REMOVING from list");
@@ -56,13 +58,13 @@ function filterNeeded(div) {
 }
 
 function acceptVisit() {
-    var accept = document.getElementById("cbAccept");
+    var accept = document.getElementById("okButton");
     if (isHidden(accept)) {
         console.log("Element is hidden .. NOT Accepting visit..");
         return;
     }
     accept.click();
-    document.getElementById("okButton").click();  
+    document.getElementById("okButton").click();
 
 }
 
@@ -71,18 +73,19 @@ function addAutoSearch() {
     var filtersDiv = document.getElementById("filtersDiv");
 
     var div = document.createElement("div");
-    div.style.background = "aquamarine";
+    div.style.background = "#eeeeee";
     div.style.padding = "10px";
 
-    addTextNode(div, "Auto search");
+    var header = document.createElement('h3');
+    header.innerHTML = 'LuxMed Auto Booker';
+    header.style.marginBottom = '10px';
+    div.appendChild(header);
 
     var input = document.createElement("input");
     input.type = "checkbox";
     input.checked = autoEnabled();
     input.onclick = switchAuto;
-    div.appendChild(input);
 
-    addTextNode(div, "Hours from to");
 
     var from = document.createElement("input");
     from.id = "time_from";
@@ -91,7 +94,6 @@ function addAutoSearch() {
     from.type = "number";
     from.value = GM_getValue("time_from");
     from.onchange = setTimeFrom;
-    div.appendChild(from);
 
     var to = document.createElement("input");
     to.id = "time_to";
@@ -100,9 +102,38 @@ function addAutoSearch() {
     to.type = "number";
     to.value = GM_getValue("time_to");
     to.onchange = setTimeTo;
-    div.appendChild(to);
+
+    var timeReload = document.createElement("input");
+    timeReload.id = "time_reload";
+    timeReload.max = 60;
+    timeReload.min = 0;
+    timeReload.type = "number";
+    timeReload.value = GM_getValue("time_reload") / 1000;
+    timeReload.onchange = setTimeReload;
+
+
+    addDivInput(div, 'Auto search', input);
+    addDivInput(div, 'Godzina od', from);
+    addDivInput(div, 'Godzina do', to);
+    addDivInput(div, 'Czas przeładowania [s]', timeReload);
+
+
 
     filtersDiv.appendChild(div);
+}
+
+function addDivInput(el, labelName, input){
+
+    var label = document.createElement('label');
+    label.innerHTML = labelName;
+    el.appendChild(label);
+
+    label.appendChild(input);
+
+    var div = document.createElement("div");
+    div.style.marginBottom = '5px';
+    div.appendChild(label);
+    el.appendChild(div);
 }
 
 function addTextNode(el, str) {
@@ -121,6 +152,12 @@ function setTimeTo() {
     var val = this.value;
     console.log("Setting TO to: " + val);
     GM_setValue("time_to", val);
+}
+
+function setTimeReload() {
+    var val = this.value;
+    console.log("Setting time_reload to: " + val);
+    GM_setValue("time_reload", val * 1000);
 }
 
 function autoEnabled() {
@@ -145,4 +182,3 @@ $(document).ready(function() {
     addAutoSearch();
     checkVisits();
 });
-
