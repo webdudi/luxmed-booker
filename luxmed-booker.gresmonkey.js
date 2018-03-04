@@ -27,14 +27,14 @@ function checkVisits() {
         return;
     }
 
-    if (foundDivs.length) {
+    if (foundDivs.length && autoBook()) {
         var found = foundDivs[0];
 
         found.click();
         setTimeout(acceptVisit, 5000);
     } else {
         console.log("NOT Found any visits, researching..");
-        setTimeout(function(){
+        setTimeout(function () {
             $('#reservationSearchSubmitButton').click();
         }, GM_getValue("time_reload", 5000));
     }
@@ -66,6 +66,21 @@ function acceptVisit() {
     accept.click();
     document.getElementById("okButton").click();
 
+}
+
+function autoBook() {
+    return GM_getValue("auto_book");
+
+}
+
+function switchAutoBook() {
+    if (autoBook()) {
+        console.log("Turning off auto book");
+        GM_setValue("auto_book", 0);
+    } else {
+        console.log("Turning on auto book");
+        GM_setValue("auto_book", 1);
+    }
 }
 
 function addAutoSearch() {
@@ -111,18 +126,23 @@ function addAutoSearch() {
     timeReload.value = GM_getValue("time_reload") / 1000;
     timeReload.onchange = setTimeReload;
 
+    var inputAutoBook = document.createElement("input");
+    inputAutoBook.type = "checkbox";
+    inputAutoBook.checked = autoBook();
+    inputAutoBook.onclick = switchAutoBook;
+
 
     addDivInput(div, 'Auto search', input);
+    addDivInput(div, 'Auto book', inputAutoBook);
     addDivInput(div, 'Godzina od', from);
     addDivInput(div, 'Godzina do', to);
     addDivInput(div, 'Czas przeładowania [s]', timeReload);
 
 
-
     filtersDiv.appendChild(div);
 }
 
-function addDivInput(el, labelName, input){
+function addDivInput(el, labelName, input) {
 
     var label = document.createElement('label');
     label.innerHTML = labelName;
@@ -178,7 +198,7 @@ function isHidden(el) {
     return (el.offsetParent === null);
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     addAutoSearch();
     checkVisits();
 });
