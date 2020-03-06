@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         LuxMed Auto Booker
 // @namespace    http://ingwar.eu.org/
-// @version      1.1
+// @version      2.0
 // @description  LuxMed Auto Booker
 // @author       Karol Lassak <Ingwar Swenson>, Piotr Dutko <p.dutko@webdudi.pl>
 // @match        https://portalpacjenta.luxmed.pl/PatientPortal/Reservations/Reservation/Find
-// @grant        GM_getValue
-// @grant        GM_setValue
+// @grant        GM.getValue
+// @grant        GM.setValue
 // ==/UserScript==
 
 
@@ -24,7 +24,7 @@ function checkVisits() {
 
     if (!autoEnabled()) {
         console.log("Auto search is disabled.. NOT accepting visit..");
-        return;
+//        return;
     }
 
     if (foundDivs.length && autoBook()) {
@@ -36,7 +36,7 @@ function checkVisits() {
         console.log("NOT Found any visits, researching..");
         setTimeout(function () {
             $('#reservationSearchSubmitButton').click();
-        }, GM_getValue("time_reload", 5000));
+        }, GM.getValue("time_reload", 5000));
     }
 }
 
@@ -45,12 +45,12 @@ function filterNeeded(div) {
     var hour = parseInt(a[0].outerText.substring(0, 2));
     console.log("Hour: " + hour);
 
-    if (hour > GM_getValue("time_to")) {
-        console.log("Hour: " + hour + " > " + GM_getValue("time_to") + " REMOVING from list");
+    if (hour > GM.getValue("time_to")) {
+        console.log("Hour: " + hour + " > " + GM.getValue("time_to") + " REMOVING from list");
         return null;
     }
-    if (hour < GM_getValue("time_from")) {
-        console.log("Hour: " + hour + " < " + GM_getValue("time_from") + " REMOVING from list");
+    if (hour < GM.getValue("time_from")) {
+        console.log("Hour: " + hour + " < " + GM.getValue("time_from") + " REMOVING from list");
         return null;
     }
 
@@ -69,17 +69,17 @@ function acceptVisit() {
 }
 
 function autoBook() {
-    return GM_getValue("auto_book");
+    return GM.getValue("auto_book");
 
 }
 
 function switchAutoBook() {
     if (autoBook()) {
         console.log("Turning off auto book");
-        GM_setValue("auto_book", 0);
+        GM.setValue("auto_book", 0);
     } else {
         console.log("Turning on auto book");
-        GM_setValue("auto_book", 1);
+        GM.setValue("auto_book", 1);
     }
 }
 
@@ -107,7 +107,7 @@ function addAutoSearch() {
     from.max = 24;
     from.min = 0;
     from.type = "number";
-    from.value = GM_getValue("time_from");
+    from.value = GM.getValue("time_from");
     from.onchange = setTimeFrom;
 
     var to = document.createElement("input");
@@ -115,7 +115,7 @@ function addAutoSearch() {
     to.max = 24;
     to.min = 0;
     to.type = "number";
-    to.value = GM_getValue("time_to");
+    to.value = GM.getValue("time_to");
     to.onchange = setTimeTo;
 
     var timeReload = document.createElement("input");
@@ -123,7 +123,7 @@ function addAutoSearch() {
     timeReload.max = 60;
     timeReload.min = 0;
     timeReload.type = "number";
-    timeReload.value = GM_getValue("time_reload") / 1000;
+    timeReload.value = GM.getValue("time_reload") / 1000;
     timeReload.onchange = setTimeReload;
 
     var inputAutoBook = document.createElement("input");
@@ -165,32 +165,32 @@ function addTextNode(el, str) {
 function setTimeFrom() {
     var val = this.value;
     console.log("Setting FROM to: " + val);
-    GM_setValue("time_from", val);
+    GM.setValue("time_from", val);
 }
 
 function setTimeTo() {
     var val = this.value;
     console.log("Setting TO to: " + val);
-    GM_setValue("time_to", val);
+    GM.setValue("time_to", val);
 }
 
 function setTimeReload() {
     var val = this.value;
     console.log("Setting time_reload to: " + val);
-    GM_setValue("time_reload", val * 1000);
+    GM.setValue("time_reload", val * 1000);
 }
 
 function autoEnabled() {
-    return GM_getValue("auto");
+    return GM.getValue("auto");
 }
 
 function switchAuto() {
     if (autoEnabled()) {
         console.log("Turning off auto");
-        GM_setValue("auto", 0);
+        GM.setValue("auto", 0);
     } else {
         console.log("Turning on auto");
-        GM_setValue("auto", 1);
+        GM.setValue("auto", 1);
     }
 }
 
